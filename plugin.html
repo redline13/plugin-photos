@@ -1,0 +1,91 @@
+<!-- PLUGIN.testClass will enable not requiring a load test class passed in -->
+<input type="hidden" name="photos_testClass" value="UploadTest">
+
+<!-- You are within a bootstrap <div class="row">YOUR CODE</div> -->
+<div class="col col-md-4">
+	<p>Setting to define generated photo information</p>
+	<div class="form-group"><label>Photo Width</label><input class="form-control" name="photos_width" type="number"></div>
+	<div class="form-group"><label>Photo Height</label><input class="form-control" name="photos_height" type="number"></div>
+	<div class="form-group"><label>Photo Format</label><select class="form-control" name="photos_format">
+			<option>jpg</option>
+			<option>png</option>
+			<option>gif</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<label class="">Meta</label>
+		<div class="input-group">
+			<input class="input-sm col-md-4" id="addKey" placeholder="Key">
+			<input class="input-sm col-md-offset-1 col-md-4" id="addVal" placeholder="Value">
+			<a onclick="_photosKV()" class="col-md-offset-1 col-md-2 btn btn-sm btn-primary">Add</a>
+		</div>
+	</div>
+	<div id="photos_kv" class="form-group"><ul></ul></div>
+</div>
+
+<div class="col col-md-4">
+	<p>Settings to control ramping</p>
+	<div class="form-group"><label>Total # photos to send</label><input class="form-control" name="photos_iterations" type="number"></div>
+	<div class="form-group"><label>or Length of time to send photos</label><input class="form-control" name="photos_minutes" type="number"></div>
+	<div class="form-group"><label>Min Delay between Photos</label><input class="form-control" name="photos_mindelay" type="number"></div>
+	<div class="form-group"><label>Max Delay between Photos</label><input class="form-control" name="photos_maxdelay" type="number"></div>
+</div>
+
+<div class="col col-md-4">
+	<p>Settings to control s3 connection</p>
+	<div class="form-group"><label>URL Endpoint</label><input class="form-control" name="photos_s3url"></div>
+	<div class="form-group"><label>Credential</label><input class="form-control" name="photos_s3cred"></div>
+	<div class="form-group"><label>Date</label><input class="form-control" name="photos_s3date"></div>
+	<div class="form-group"><label>Policy</label><input class="form-control" name="photos_s3policy"></div>
+	<div class="form-group"><label>Signature</label><input class="form-control" name="photos_s3sig"></div>
+	<div class="form-group"><label>Security Token</label><input class="form-control" name="photos_s3token"></div>
+</div>
+
+<script>
+/**
+ * Supports adding meta tags and values to the form.
+ */
+_photosKV = function(){
+	var k = $("#addKey").val().trim();
+	var v = $("#addVal").val().trim();
+	if ( k != '' ){
+		$('<li style="padding-top:4px;">'+k+':'+v+' <i onclick="_photosKVremove(this)" class="fa fa-close"></i><input type="hidden" name="photos_meta[]" value="'+k+':'+v+'"></li>')
+			.appendTo($("#photos_kv ul"));
+		$("#addKey").val('');
+		$("#addVal").val('');
+	}
+}
+_photosKVprefill = function(kv){
+	$('<li style="padding-top:4px;">'+kv+' <i onclick="_photosKVremove(this)" class="fa fa-close"></i><input type="hidden" name="photos_meta[]" value="'+kv+'"></li>')
+		.appendTo($("#photos_kv ul"));
+}
+_photosKVremove = function(id){
+	$(id).parent().remove();
+}
+
+// On Document Load Register plugin for events.
+$(function(){
+
+	CustomTest.registerPlugin( 'photos', function(event,data){
+		switch( event ){
+			// Invoked on a clone, we fill in standard data and fields. But custom fields plugin must handle.
+			// event = all test data.
+			case 'prefill':
+				if ( data['plugin_photos'] && data['plugin_photos']['photos_meta'] ){
+					data['plugin_photos']['photos_meta'].forEach(function(kv){
+						_photosKVprefill(kv);
+					})
+				}
+				break;
+
+			// When the plugin is enabled/disabled. event is true|false
+			case 'enabled':
+				CustomTest.enableMasterFile(false);
+				break;
+			case 'disabled':
+				CustomTest.enableMasterFile(true);
+				break;
+		}
+	});
+})
+</script>
